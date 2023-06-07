@@ -8,23 +8,14 @@
 #include "lcdDisplay.h"
 
 
-void delay (lcd_t *lcd, uint16_t us)
-{
-	uint32_t ticks = lcd->_ticksForUs*us;
-
-	while (ticks > 0){
-		ticks--;
-	}
-}
-
 /****************************************************************************************************************************************************************/
 
 void send_to_lcd (lcd_t *lcd, char data, int rs)
 {
 	uint8_t _dataSend[2], steps, i;
 
-	HAL_GPIO_WritePin(lcd->gpios[LCD_RS].GPIO, lcd->gpios[LCD_RS].pin, rs);  // rs = 1 for data, rs=0 for command
-	delay(lcd, 5);
+	_platform_gpio_write(lcd->gpios[LCD_RS], rs);  // rs = 1 for data, rs=0 for command
+	_platform_delay_us(5);
 	if (lcd->interface == LCD_INTERFACE_4BIT){
 		// will send the dara byte in two steps
 		// first is sent the Upper 4 bits (higher nibble) over the interface
@@ -34,56 +25,39 @@ void send_to_lcd (lcd_t *lcd, char data, int rs)
 		_dataSend[1] = (data & 0xF);
 		for (i=0 ; i<steps ; i++){
 			/* write the data to the respective pin */
-			HAL_GPIO_WritePin(lcd->gpios[LCD_D7].GPIO, lcd->gpios[LCD_D7].pin, ((_dataSend[i]>>3)&0x01));
-			HAL_GPIO_WritePin(lcd->gpios[LCD_D6].GPIO, lcd->gpios[LCD_D6].pin, ((_dataSend[i]>>2)&0x01));
-			HAL_GPIO_WritePin(lcd->gpios[LCD_D5].GPIO, lcd->gpios[LCD_D5].pin, ((_dataSend[i]>>1)&0x01));
-			HAL_GPIO_WritePin(lcd->gpios[LCD_D4].GPIO, lcd->gpios[LCD_D4].pin, ((_dataSend[i]>>0)&0x01));
+			_platform_gpio_write(lcd->gpios[LCD_D7], ((_dataSend[i]>>3)&0x01));
+			_platform_gpio_write(lcd->gpios[LCD_D6], ((_dataSend[i]>>2)&0x01));
+			_platform_gpio_write(lcd->gpios[LCD_D5], ((_dataSend[i]>>1)&0x01));
+			_platform_gpio_write(lcd->gpios[LCD_D4], ((_dataSend[i]>>0)&0x01));
 
 			/* Toggle EN PIN to send the data
-			 * if the HCLK > 100 MHz, use the  20 us delay
-			 * if the LCD still doesn't work, increase the delay to 50, 80 or 100..
 			 */
-			HAL_GPIO_WritePin(lcd->gpios[LCD_E].GPIO, lcd->gpios[LCD_E].pin, 1);
-			delay(lcd, 20);
-			HAL_GPIO_WritePin(lcd->gpios[LCD_E].GPIO, lcd->gpios[LCD_E].pin, 0);
-			delay(lcd, 20);
+			_platform_gpio_write(lcd->gpios[LCD_E], 1);
+			_platform_delay_us(20);
+			_platform_gpio_write(lcd->gpios[LCD_E], 0);
+			_platform_delay_us(20);
 		}
 	}
 	else{
 		_dataSend[0] = data;
 		/* write the data to the respective pin */
-		HAL_GPIO_WritePin(lcd->gpios[LCD_D7].GPIO, lcd->gpios[LCD_D7].pin, ((_dataSend[0]>>7)&0x01));
-		HAL_GPIO_WritePin(lcd->gpios[LCD_D6].GPIO, lcd->gpios[LCD_D6].pin, ((_dataSend[0]>>6)&0x01));
-		HAL_GPIO_WritePin(lcd->gpios[LCD_D5].GPIO, lcd->gpios[LCD_D5].pin, ((_dataSend[0]>>5)&0x01));
-		HAL_GPIO_WritePin(lcd->gpios[LCD_D4].GPIO, lcd->gpios[LCD_D4].pin, ((_dataSend[0]>>4)&0x01));
-		HAL_GPIO_WritePin(lcd->gpios[LCD_D3].GPIO, lcd->gpios[LCD_D3].pin, ((_dataSend[0]>>3)&0x01));
-		HAL_GPIO_WritePin(lcd->gpios[LCD_D2].GPIO, lcd->gpios[LCD_D2].pin, ((_dataSend[0]>>2)&0x01));
-		HAL_GPIO_WritePin(lcd->gpios[LCD_D1].GPIO, lcd->gpios[LCD_D1].pin, ((_dataSend[0]>>1)&0x01));
-		HAL_GPIO_WritePin(lcd->gpios[LCD_D0].GPIO, lcd->gpios[LCD_D0].pin, ((_dataSend[0]>>0)&0x01));
+		_platform_gpio_write(lcd->gpios[LCD_D7], ((_dataSend[0]>>7)&0x01));
+		_platform_gpio_write(lcd->gpios[LCD_D6], ((_dataSend[0]>>6)&0x01));
+		_platform_gpio_write(lcd->gpios[LCD_D5], ((_dataSend[0]>>5)&0x01));
+		_platform_gpio_write(lcd->gpios[LCD_D4], ((_dataSend[0]>>4)&0x01));
+		_platform_gpio_write(lcd->gpios[LCD_D3], ((_dataSend[0]>>3)&0x01));
+		_platform_gpio_write(lcd->gpios[LCD_D2], ((_dataSend[0]>>2)&0x01));
+		_platform_gpio_write(lcd->gpios[LCD_D1], ((_dataSend[0]>>1)&0x01));
+		_platform_gpio_write(lcd->gpios[LCD_D0], ((_dataSend[0]>>0)&0x01));
 
 		/* Toggle EN PIN to send the data
-		 * if the HCLK > 100 MHz, use the  20 us delay
-		 * if the LCD still doesn't work, increase the delay to 50, 80 or 100..
 		 */
-		HAL_GPIO_WritePin(lcd->gpios[LCD_E].GPIO, lcd->gpios[LCD_E].pin, 1);
-		delay(lcd, 20);
-		HAL_GPIO_WritePin(lcd->gpios[LCD_E].GPIO, lcd->gpios[LCD_E].pin, 0);
-		delay(lcd, 20);
+		_platform_gpio_write(lcd->gpios[LCD_E], 1);
+		_platform_delay_us(20);
+		_platform_gpio_write(lcd->gpios[LCD_E], 0);
+		_platform_delay_us(20);
 	}
 }
-
-//void lcd_send_data (lcd_t *lcd, char data)
-//{
-//	char datatosend;
-//
-//	/* send higher nibble */
-//	datatosend = ((data>>4)&0x0f);
-//	send_to_lcd(lcd, datatosend, 1);  // rs =1 for sending data
-//
-//	/* send Lower nibble */
-//	datatosend = ((data)&0x0f);
-//	send_to_lcd(lcd, datatosend, 1);
-//}
 
 /**
  * Publics
@@ -91,30 +65,26 @@ void send_to_lcd (lcd_t *lcd, char data, int rs)
 
 void lcd_init (lcd_t *lcd)
 {
-	uint32_t sysclk = HAL_RCC_GetSysClockFreq();
-
-	lcd->_ticksForUs = (sysclk)/(2E6);
-
 	// 4 bit initialisation
-	HAL_Delay(50);  // wait for >40ms
+	_platform_delay_ms(50);  	// wait for >40ms
 	lcd_cmd (lcd, LCD_CMD_FUNCTION_SET | DISPLAY_DL_8BIT);
-	HAL_Delay(5);  // wait for >4.1ms
+	_platform_delay_ms(5);  	// wait for >4.1ms
 	lcd_cmd (lcd, LCD_CMD_FUNCTION_SET | DISPLAY_DL_8BIT);
-	HAL_Delay(1);  // wait for >100us
+	_platform_delay_us(200);  	// wait for >100us
 	lcd_cmd (lcd, LCD_CMD_FUNCTION_SET | DISPLAY_DL_8BIT);
-	HAL_Delay(10);
+	_platform_delay_us(200);	// wait for >100us
 	lcd_cmd (lcd, LCD_CMD_FUNCTION_SET | DISPLAY_DL_4BIT);  // 4bit mode
-	HAL_Delay(10);
+	_platform_delay_ms(10);
 
   // dislay initialisation
 	lcd_cmd (lcd, LCD_CMD_FUNCTION_SET | DISPLAY_DL_4BIT | DISPLAY_N_2LINE | DISPLAY_FONT_5x8); // Function set --> DL=0 (4 bit mode), N = 1 (2 line display) F = 0 (5x8 characters)
-	HAL_Delay(1);
+	_platform_delay_ms(1);
 	lcd_cmd (lcd, LCD_CMD_DISPOFF_CURSOROFF); //Display on/off control --> D=0,C=0, B=0  ---> display off
-	HAL_Delay(1);
+	_platform_delay_ms(1);
 	lcd_cmd (lcd, LCD_CMD_CLEAR);  // clear display
-	HAL_Delay(2);
+	_platform_delay_ms(2);
 	lcd_cmd (lcd, LCD_CMD_INC_CURSOR); //Entry mode set --> I/D = 1 (increment cursor) & S = 0 (no shift)
-	HAL_Delay(1);
+	_platform_delay_ms(1);
 	lcd_cmd (lcd, LCD_CMD_DISPON_CURSOROFF); //Display on/off control --> D = 1, C and B = 0. (Cursor and blink, last two bits)
 
 	lcd_put_pos(lcd, 0, 0);
@@ -188,7 +158,7 @@ void lcd_clear_row (lcd_t *lcd, uint8_t row){
 
 void lcd_clear_all (lcd_t *lcd){
 	lcd_cmd(lcd, LCD_CMD_CLEAR);
-	HAL_Delay(10);
+	_platform_delay_ms(2);
 }
 
 void lcd_create_custom_char (lcd_t *lcd, lcd_custom_char_e custom, uint8_t *bitmap){
@@ -198,4 +168,12 @@ void lcd_create_custom_char (lcd_t *lcd, lcd_custom_char_e custom, uint8_t *bitm
 	for (i=0 ; i<LCD_CHAR_ROWS ; i++){
 		lcd_data(lcd, bitmap[i]);
 	}
+}
+
+void lcd_backlight_set (lcd_t *lcd, uint8_t state){
+	_platform_gpio_write(lcd->backlightGpio, (state > 0));
+}
+
+void lcd_backlight_set_bright (lcd_t *lcd, uint8_t level){
+	_platform_pwm_control(lcd->backlightPwm, level);
 }

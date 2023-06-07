@@ -1,26 +1,21 @@
 /*
- * lcd1602.h
+ * lcdDisplay.h
  *
- *  Created on: Jan 21, 2020
- *      Author: Controllerstech
+ *  Created on: Jun, 6 of 2023
+ *      Author: Pablo Jean
  */
 
-#ifndef INC_LCD1602_H_
-#define INC_LCD1602_H_
+#ifndef INC_LCDDISPLAY_H_
+#define INC_LCDDISPLAY_H_
 
 
 #include <stdint.h>
-/**
- * Uncomment the include here the stm32 main library, example:
- */
-//#include "stm32f1xx.h"
-//#include "stm32f2xx.h"
-#include "stm32f4xx.h"
-//#include "stm32g0xx.h"
-// ..you can add another if wasn't inserted here
+#include <stddef.h>
+
+#include "platform/platform.h"
 
 /**
- * Defines
+ * Macros
  */
 
 #define DISPLAY_CONTROL_ON		(1 << 2)
@@ -96,17 +91,14 @@ typedef enum{
 }lcd_pin_e;
 
 typedef struct{
-	GPIO_TypeDef *GPIO;
-	uint32_t pin;
-}gpio_t;
-
-typedef struct{
 	gpio_t gpios[LCD_PIN_QTD];
 	uint32_t columns;
 	uint32_t rows;
 	lcd_interface_mode_e interface;
+	//backlight control, pick one, or no one
+	gpio_t backlightGpio;
+	pwm_t backlightPwm;
 	// please, do not customize this values
-	uint32_t _ticksForUs;
 	uint8_t _control;
 	uint8_t _column;
 	uint8_t _row;
@@ -137,5 +129,7 @@ void lcd_clear_row (lcd_t *lcd, uint8_t row);
 void lcd_clear_all (lcd_t *lcd);
 
 void lcd_create_custom_char (lcd_t *lcd, lcd_custom_char_e custom, uint8_t *bitmap);
+
+void lcd_backlight_set_bright (lcd_t *lcd, uint8_t level);
 
 #endif /* INC_LCD1602_H_ */
