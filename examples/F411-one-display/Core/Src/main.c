@@ -21,6 +21,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include <stdio.h>
 #include "lcdDisplay.h"
 /* USER CODE END Includes */
 
@@ -43,7 +44,8 @@
 TIM_HandleTypeDef htim4;
 
 /* USER CODE BEGIN PV */
-
+uint8_t brtLevel = 100;
+lcd_t Lcd = {0};
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -56,7 +58,41 @@ static void MX_TIM4_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+void _lcd_config(){
+	Lcd.columns = 20;
+	Lcd.rows = 4;
+	Lcd.interface = LCD_INTERFACE_8BIT;
+	Lcd.font = LCD_FONT_5X8;
+	Lcd.gpios[LCD_RS].GPIO = 	(uint32_t)LCD_RS_GPIO_Port;
+	Lcd.gpios[LCD_RS].pin = 	LCD_RS_Pin;
+	Lcd.gpios[LCD_E].GPIO = 	(uint32_t)LCD_E_GPIO_Port;
+	Lcd.gpios[LCD_E].pin = 		LCD_E_Pin;
+	Lcd.gpios[LCD_D0].GPIO = 	(uint32_t)LCD_D0_GPIO_Port;
+	Lcd.gpios[LCD_D0].pin = 	LCD_D0_Pin;
+	Lcd.gpios[LCD_D1].GPIO =	(uint32_t)LCD_D1_GPIO_Port;
+	Lcd.gpios[LCD_D1].pin = 	LCD_D1_Pin;
+	Lcd.gpios[LCD_D2].GPIO = 	(uint32_t)LCD_D2_GPIO_Port;
+	Lcd.gpios[LCD_D2].pin = 	LCD_D2_Pin;
+	Lcd.gpios[LCD_D3].GPIO = 	(uint32_t)LCD_D3_GPIO_Port;
+	Lcd.gpios[LCD_D3].pin = 	LCD_D3_Pin;
+	Lcd.gpios[LCD_D4].GPIO = 	(uint32_t)LCD_D4_GPIO_Port;
+	Lcd.gpios[LCD_D4].pin = 	LCD_D4_Pin;
+	Lcd.gpios[LCD_D5].GPIO =	(uint32_t)LCD_D5_GPIO_Port;
+	Lcd.gpios[LCD_D5].pin = 	LCD_D5_Pin;
+	Lcd.gpios[LCD_D6].GPIO = 	(uint32_t)LCD_D6_GPIO_Port;
+	Lcd.gpios[LCD_D6].pin = 	LCD_D6_Pin;
+	Lcd.gpios[LCD_D7].GPIO = 	(uint32_t)LCD_D7_GPIO_Port;
+	Lcd.gpios[LCD_D7].pin = 	LCD_D7_Pin;
 
+
+	  //  Lcd.backlightGpio.GPIO = (uint32_t)LCD_BL_CTRL_GPIO_Port;
+	  //  Lcd.backlightGpio.pin = LCD_BL_CTRL_Pin;
+	Lcd.backlightPwm.Channel = TIM_CHANNEL_1;
+	Lcd.backlightPwm.Peripheral = (uint32_t)&htim4;
+
+	lcd_backlight_set_bright(&Lcd, 60);
+	lcd_init(&Lcd);
+}
 /* USER CODE END 0 */
 
 /**
@@ -66,19 +102,11 @@ static void MX_TIM4_Init(void);
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-	lcd_t Lcd = {0};
 	char texto[21];
-	uint32_t Count;
-	uint8_t bmp[8] = {
-			0x23,
-			0x42,
-			0x23,
-			0x42,
-			0x23,
-			0x42,
-			0x23,
-			0x23
-	};
+	int Count;
+	uint8_t flip = 1;
+	uint8_t arrow1[8] = { 0x00, 0x04, 0x06, 0x1F, 0x1F, 0x06, 0x04, 0x00 };
+	uint8_t arrow2[8] = { 0x00, 0x04, 0x0C, 0x1F, 0x1F, 0x0C, 0x04, 0x00 };
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -103,27 +131,14 @@ int main(void)
   /* USER CODE BEGIN 2 */
   HAL_Delay(150);
 
-  Lcd.columns = 20;
-  Lcd.rows = 4;
-  Lcd.interface = LCD_INTERFACE_4BIT;
-  Lcd.gpios[LCD_RS].GPIO = 	LCD_RS_GPIO_Port;
-  Lcd.gpios[LCD_RS].pin = 	LCD_RS_Pin;
-  Lcd.gpios[LCD_E].GPIO = 	LCD_E_GPIO_Port;
-  Lcd.gpios[LCD_E].pin = 	LCD_E_Pin;
-  Lcd.gpios[LCD_D4].GPIO = 	LCD_D4_GPIO_Port;
-  Lcd.gpios[LCD_D4].pin = 	LCD_D4_Pin;
-  Lcd.gpios[LCD_D5].GPIO =	LCD_D5_GPIO_Port;
-  Lcd.gpios[LCD_D5].pin = 	LCD_D5_Pin;
-  Lcd.gpios[LCD_D6].GPIO = 	LCD_D6_GPIO_Port;
-  Lcd.gpios[LCD_D6].pin = 	LCD_D6_Pin;
-  Lcd.gpios[LCD_D7].GPIO = 	LCD_D7_GPIO_Port;
-  Lcd.gpios[LCD_D7].pin = 	LCD_D7_Pin;
+  _lcd_config();
 
-  lcd_init(&Lcd);
-  lcd_create_custom_char(&Lcd, LCD_CUSTOM_1, bmp);
+  lcd_create_custom_char(&Lcd, LCD_CUSTOM_1, arrow1);
+  lcd_create_custom_char(&Lcd, LCD_CUSTOM_2, arrow2);
 
-  lcd_send_string(&Lcd, "Ola Mundo.");
-  lcd_send_char(&Lcd, 0x00);
+  lcd_send_char(&Lcd, LCD_CUSTOM_1);
+  lcd_send_string(&Lcd, "Hello World");
+  lcd_send_char(&Lcd, LCD_CUSTOM_2);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -131,11 +146,21 @@ int main(void)
   Count = 0;
   while (1)
   {
-	  sprintf(texto, "Contador: %d", Count);
+	  sprintf(texto, "Counter: %d", Count);
 	  lcd_send_string_pos(&Lcd, texto, 1, 0);
+	  if (flip){
+		  brtLevel--;
+		  if (brtLevel == 0)
+			  flip = 0;
+	  }
+	  else{
+		  brtLevel++;
+		  if (brtLevel == 100)
+			  flip = 1;
+	  }
 
 	  Count++;
-	  HAL_Delay(500);
+	  HAL_Delay(100);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -204,9 +229,9 @@ static void MX_TIM4_Init(void)
 
   /* USER CODE END TIM4_Init 1 */
   htim4.Instance = TIM4;
-  htim4.Init.Prescaler = 0;
+  htim4.Init.Prescaler = 1;
   htim4.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim4.Init.Period = 65535;
+  htim4.Init.Period = 999;
   htim4.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim4.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_Base_Init(&htim4) != HAL_OK)
@@ -263,13 +288,18 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(GPIOA, LCD_D7_Pin|LCD_D6_Pin|LCD_D5_Pin|LCD_D4_Pin
                           |LCD_E_Pin|LCD_RS_Pin, GPIO_PIN_RESET);
 
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOA, LCD_D0_Pin|LCD_D1_Pin|LCD_D2_Pin|LCD_D3_Pin, GPIO_PIN_SET);
+
   /*Configure GPIO pins : LCD_D7_Pin LCD_D6_Pin LCD_D5_Pin LCD_D4_Pin
-                           LCD_E_Pin LCD_RS_Pin */
+                           LCD_E_Pin LCD_RS_Pin LCD_D0_Pin LCD_D1_Pin
+                           LCD_D2_Pin LCD_D3_Pin */
   GPIO_InitStruct.Pin = LCD_D7_Pin|LCD_D6_Pin|LCD_D5_Pin|LCD_D4_Pin
-                          |LCD_E_Pin|LCD_RS_Pin;
+                          |LCD_E_Pin|LCD_RS_Pin|LCD_D0_Pin|LCD_D1_Pin
+                          |LCD_D2_Pin|LCD_D3_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
 /* USER CODE BEGIN MX_GPIO_Init_2 */

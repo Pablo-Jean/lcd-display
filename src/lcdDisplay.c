@@ -65,7 +65,14 @@ void send_to_lcd (lcd_t *lcd, char data, int rs)
 
 void lcd_init (lcd_t *lcd)
 {
-	// 4 bit initialisation
+	uint8_t dispDl, dispFont;
+
+	if (lcd->font == LCD_FONT_5X8){
+		dispFont = DISPLAY_FONT_5x8;
+	}
+	else{
+		dispFont = DISPLAY_FONT_5x10;
+	}
 	_platform_delay_ms(50);  	// wait for >40ms
 	lcd_cmd (lcd, LCD_CMD_FUNCTION_SET | DISPLAY_DL_8BIT);
 	_platform_delay_ms(5);  	// wait for >4.1ms
@@ -73,21 +80,62 @@ void lcd_init (lcd_t *lcd)
 	_platform_delay_us(200);  	// wait for >100us
 	lcd_cmd (lcd, LCD_CMD_FUNCTION_SET | DISPLAY_DL_8BIT);
 	_platform_delay_us(200);	// wait for >100us
-	lcd_cmd (lcd, LCD_CMD_FUNCTION_SET | DISPLAY_DL_4BIT);  // 4bit mode
+	if (lcd->interface == LCD_INTERFACE_4BIT){
+		// 4 bit initialisation
+		lcd_cmd (lcd, LCD_CMD_FUNCTION_SET | DISPLAY_DL_4BIT);  // 4bit mode
+		dispDl = DISPLAY_DL_4BIT;
+	}
+	else{
+		lcd_cmd (lcd, LCD_CMD_FUNCTION_SET | DISPLAY_DL_8BIT);
+		dispDl = DISPLAY_DL_8BIT;
+	}
 	_platform_delay_ms(10);
 
   // dislay initialisation
-	lcd_cmd (lcd, LCD_CMD_FUNCTION_SET | DISPLAY_DL_4BIT | DISPLAY_N_2LINE | DISPLAY_FONT_5x8); // Function set --> DL=0 (4 bit mode), N = 1 (2 line display) F = 0 (5x8 characters)
+	lcd->_cursor = DISPLAY_CONTROL_ON | DISPLAY_CURSOR_OFF | DISPLAY_BLINK_OFF;
+	lcd_cmd (lcd, LCD_CMD_FUNCTION_SET | dispDl | DISPLAY_N_2LINE | dispFont); // Function set --> DL=0 or 1, N = 1 (2 line display) F = 0 (5x8 characters)
 	_platform_delay_ms(1);
-	lcd_cmd (lcd, LCD_CMD_DISPOFF_CURSOROFF); //Display on/off control --> D=0,C=0, B=0  ---> display off
+	lcd_cmd (lcd, LCD_CMD_DISP_CONTROL); //Display on/off control --> D=0,C=0, B=0  ---> display off
 	_platform_delay_ms(1);
 	lcd_cmd (lcd, LCD_CMD_CLEAR);  // clear display
 	_platform_delay_ms(2);
 	lcd_cmd (lcd, LCD_CMD_INC_CURSOR); //Entry mode set --> I/D = 1 (increment cursor) & S = 0 (no shift)
 	_platform_delay_ms(1);
-	lcd_cmd (lcd, LCD_CMD_DISPON_CURSOROFF); //Display on/off control --> D = 1, C and B = 0. (Cursor and blink, last two bits)
+	lcd_cmd (lcd, LCD_CMD_DISP_CONTROL | lcd->_cursor); //Display on/off control --> D = 1, C and B = 0. (Cursor and blink, last two bits)
 
-	lcd_put_pos(lcd, 0, 0);
+	lcd_cmd(lcd, LCD_CMD_RETURN_HOME);
+	lcd->_column = 0;
+	lcd->_row = 0;
+}
+
+void lcd_blink_off(lcd_t *lcd){
+	lcd->_cursor &= ~(DISPLAY_BLINK_ON);
+	lcd_cmd(lcd, LCD_CMD_DISP_CONTROL | lcd->_cursor);
+}
+
+void lcd_blink_on(lcd_t *lcd){
+	lcd->_cursor |= (DISPLAY_BLINK_ON);
+	lcd_cmd(lcd, LCD_CMD_DISP_CONTROL | lcd->_cursor);
+}
+
+void lcd_cursor_off(lcd_t *lcd){
+	lcd->_cursor &= ~(DISPLAY_CURSOR_ON);
+	lcd_cmd(lcd, LCD_CMD_DISP_CONTROL | lcd->_cursor);
+}
+
+void lcd_cursor_on(lcd_t *lcd){
+	lcd->_cursor |= (DISPLAY_CURSOR_ON);
+	lcd_cmd(lcd, LCD_CMD_DISP_CONTROL | lcd->_cursor);
+}
+
+void lcd_display_off(lcd_t *lcd){
+	lcd->_cursor &= ~(DISPLAY_CONTROL_ON);
+	lcd_cmd(lcd, LCD_CMD_DISP_CONTROL | lcd->_cursor);
+}
+
+void lcd_display_on(lcd_t *lcd){
+	lcd->_cursor |= (DISPLAY_CONTROL_ON);
+	lcd_cmd(lcd, LCD_CMD_DISP_CONTROL | lcd->_cursor);
 }
 
 void lcd_cmd (lcd_t *lcd, lcd_cmd_e cmd)
@@ -162,12 +210,20 @@ void lcd_clear_all (lcd_t *lcd){
 }
 
 void lcd_create_custom_char (lcd_t *lcd, lcd_custom_char_e custom, uint8_t *bitmap){
-	uint8_t i;
+	uint8_t i, rows, offset;
 
-	lcd_cmd(lcd, LCD_CMD_SET_CGRAM | custom);
-	for (i=0 ; i<LCD_CHAR_ROWS ; i++){
+	if (lcd->font == LCD_FONT_5X8){
+		rows = 8;
+	}
+	else{
+		rows = 10;
+	}
+	offset = custom*0x8;
+	lcd_cmd(lcd, LCD_CMD_SET_CGRAM | offset);
+	for (i=0 ; i<rows ; i++){
 		lcd_data(lcd, bitmap[i]);
 	}
+	lcd_cmd(lcd, LCD_CMD_RETURN_HOME);
 }
 
 void lcd_backlight_set (lcd_t *lcd, uint8_t state){
