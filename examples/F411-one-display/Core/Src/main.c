@@ -44,7 +44,6 @@
 TIM_HandleTypeDef htim4;
 
 /* USER CODE BEGIN PV */
-uint8_t brtLevel = 100;
 lcd_t Lcd = {0};
 /* USER CODE END PV */
 
@@ -93,6 +92,14 @@ void _lcd_config(){
 	lcd_backlight_set_bright(&Lcd, 60);
 	lcd_init(&Lcd);
 }
+
+void _lcd_custom_char(){
+	uint8_t arrow1[8] = { 0x00, 0x04, 0x06, 0x1F, 0x1F, 0x06, 0x04, 0x00 };
+	uint8_t arrow2[8] = { 0x00, 0x04, 0x0C, 0x1F, 0x1F, 0x0C, 0x04, 0x00 };
+
+  lcd_create_custom_char(&Lcd, LCD_CUSTOM_1, arrow1);
+  lcd_create_custom_char(&Lcd, LCD_CUSTOM_2, arrow2);
+}
 /* USER CODE END 0 */
 
 /**
@@ -104,9 +111,7 @@ int main(void)
   /* USER CODE BEGIN 1 */
 	char texto[21];
 	int Count;
-	uint8_t flip = 1;
-	uint8_t arrow1[8] = { 0x00, 0x04, 0x06, 0x1F, 0x1F, 0x06, 0x04, 0x00 };
-	uint8_t arrow2[8] = { 0x00, 0x04, 0x0C, 0x1F, 0x1F, 0x0C, 0x04, 0x00 };
+
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -132,12 +137,11 @@ int main(void)
   HAL_Delay(150);
 
   _lcd_config();
+  _lcd_custom_char();
 
-  lcd_create_custom_char(&Lcd, LCD_CUSTOM_1, arrow1);
-  lcd_create_custom_char(&Lcd, LCD_CUSTOM_2, arrow2);
 
   lcd_send_char(&Lcd, LCD_CUSTOM_1);
-  lcd_send_string(&Lcd, "Hello World");
+  lcd_send_string(&Lcd, " Hello World ");
   lcd_send_char(&Lcd, LCD_CUSTOM_2);
   /* USER CODE END 2 */
 
@@ -148,19 +152,8 @@ int main(void)
   {
 	  sprintf(texto, "Counter: %d", Count);
 	  lcd_send_string_pos(&Lcd, texto, 1, 0);
-	  if (flip){
-		  brtLevel--;
-		  if (brtLevel == 0)
-			  flip = 0;
-	  }
-	  else{
-		  brtLevel++;
-		  if (brtLevel == 100)
-			  flip = 1;
-	  }
-
 	  Count++;
-	  HAL_Delay(100);
+	  HAL_Delay(1000);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */

@@ -46,9 +46,9 @@
 			<locationURI>PARENT-2-PROJECT_LOC/src/platform/platform.h</locationURI>
 		</link>
 		<link>
-			<name>lib/platform/platform_stm32.c</name>
+			<name>lib/platform/platform_stm32f4.c</name>
 			<type>1</type>
-			<locationURI>PARENT-2-PROJECT_LOC/src/platform/platform_stm32.c</locationURI>
+			<locationURI>PARENT-2-PROJECT_LOC/src/platform/platform_stm32f4.c</locationURI>
 		</link>
 	</linkedResources>
 </projectDescription>

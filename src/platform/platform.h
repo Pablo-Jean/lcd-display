@@ -6,12 +6,22 @@
  * works with any microcontroller withtout the needing any change
  * on the src code.
  *
+ * This file can be associated with only one platform_xxx.c file
+ * Do not include on source more than one .c file, or errors must
+ * occour.
+ *
  *  Created on: Jun, 6 of 2023
  *      Author: Pablo Jean
  */
 
 #include <stdint.h>
 #include <stddef.h>
+
+/**
+ * Macros
+ */
+
+#define PLATFORM_ASSERT(x)		if(x == 0) {while(1);}
 
 /**
  * Typedefs
