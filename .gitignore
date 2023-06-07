@@ -1,0 +1,8 @@
+Debug/
+.settings/
+
+*.bin
+*.hex
+*.a
+*.o
+*.elf
