@@ -1,5 +1,5 @@
-Debug/
-.settings/
+**/Debug/
+**/.settings/
 
 *.bin
 *.hex
