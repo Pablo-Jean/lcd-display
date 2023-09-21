@@ -28,8 +28,18 @@
  */
 
 typedef struct{
+	/* The GPIO handler of your MCU, some uc do not have
+	 * the GPIO handler, only the Pin (nRF52810, CC26x2R1, for example)
+	 */
 	uint32_t GPIO;
+	/* The Pin number parameter. Some MCUs has only this parameters
+	 * to identify your GPIOs*/
 	uint32_t pin;
+	/* Example of providing this parameters:
+	 * ::for STM32::
+	 * gpios.GPIO = (uint32_t)GPIOA
+	 * gpios.pin = GPIO_PIN3
+	 */
 }gpio_t;
 
 typedef struct{

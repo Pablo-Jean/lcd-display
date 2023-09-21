@@ -14,7 +14,6 @@
 
 #include "platform.h"
 
-#include <stm32f4xx.h>
 
 void _platform_gpio_write(gpio_t Gpio, uint8_t Val){
 	/**
