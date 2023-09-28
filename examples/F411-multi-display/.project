@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
-	<name>F411-one-display</name>
+	<name>F411-multi-display</name>
 	<comment></comment>
 	<projects>
 	</projects>
@@ -31,24 +31,15 @@
 	</natures>
 	<linkedResources>
 		<link>
-			<name>lib/lcdDisplay.c</name>
-			<type>1</type>
-			<locationURI>PARENT-2-PROJECT_LOC/src/lcdDisplay.c</locationURI>
-		</link>
-		<link>
-			<name>lib/lcdDisplay.h</name>
-			<type>1</type>
-			<locationURI>PARENT-2-PROJECT_LOC/src/lcdDisplay.h</locationURI>
-		</link>
-		<link>
-			<name>lib/platform/platform.h</name>
-			<type>1</type>
-			<locationURI>PARENT-2-PROJECT_LOC/src/platform/platform.h</locationURI>
-		</link>
-		<link>
-			<name>lib/platform/platform_stm32f4.c</name>
-			<type>1</type>
-			<locationURI>PARENT-2-PROJECT_LOC/src/platform/platform_stm32f4.c</locationURI>
+			<name>lcd/src</name>
+			<type>2</type>
+			<locationURI>PARENT-2-PROJECT_LOC/src</locationURI>
 		</link>
 	</linkedResources>
+	<variableList>
+		<variable>
+			<name>copy_PARENT</name>
+			<value>$%7BPARENT-1-PROJECT_LOC%7D/lcd</value>
+		</variable>
+	</variableList>
 </projectDescription>
