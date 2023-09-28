@@ -4,6 +4,12 @@
 Created for Ouroboros Embedded Education.
 </center>
 
+## Versions Changelog
+
+V1.0.0
+
+- Initial Release
+
 ## Introduction
 
 This is a simple library to work with the LCD Alphanumeric Display, encountered in many sizes and colors.
