@@ -1,8 +1,11 @@
-**/Debug/
-**/.settings/
+Debug/
+.settings/
 
 *.bin
 *.hex
 *.a
 *.o
 *.elf
+*.map
+*.list
+*.su

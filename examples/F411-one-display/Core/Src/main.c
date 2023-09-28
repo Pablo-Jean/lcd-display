@@ -37,69 +37,130 @@
 
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
-
+#define LCD1		0
+#define LCD2		1
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
 TIM_HandleTypeDef htim4;
+TIM_HandleTypeDef htim5;
 
 /* USER CODE BEGIN PV */
-lcd_t Lcd = {0};
+lcd_t Lcd[2] = {0};
+uint8_t Lcd2Bright = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_TIM4_Init(void);
+static void MX_TIM5_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-void _lcd_config(){
-	Lcd.columns = 20;
-	Lcd.rows = 4;
-	Lcd.interface = LCD_INTERFACE_8BIT;
-	Lcd.font = LCD_FONT_5X8;
-	Lcd.gpios[LCD_RS].GPIO = 	(uint32_t)LCD_RS_GPIO_Port;
-	Lcd.gpios[LCD_RS].pin = 	LCD_RS_Pin;
-	Lcd.gpios[LCD_E].GPIO = 	(uint32_t)LCD_E_GPIO_Port;
-	Lcd.gpios[LCD_E].pin = 		LCD_E_Pin;
-	Lcd.gpios[LCD_D0].GPIO = 	(uint32_t)LCD_D0_GPIO_Port;
-	Lcd.gpios[LCD_D0].pin = 	LCD_D0_Pin;
-	Lcd.gpios[LCD_D1].GPIO =	(uint32_t)LCD_D1_GPIO_Port;
-	Lcd.gpios[LCD_D1].pin = 	LCD_D1_Pin;
-	Lcd.gpios[LCD_D2].GPIO = 	(uint32_t)LCD_D2_GPIO_Port;
-	Lcd.gpios[LCD_D2].pin = 	LCD_D2_Pin;
-	Lcd.gpios[LCD_D3].GPIO = 	(uint32_t)LCD_D3_GPIO_Port;
-	Lcd.gpios[LCD_D3].pin = 	LCD_D3_Pin;
-	Lcd.gpios[LCD_D4].GPIO = 	(uint32_t)LCD_D4_GPIO_Port;
-	Lcd.gpios[LCD_D4].pin = 	LCD_D4_Pin;
-	Lcd.gpios[LCD_D5].GPIO =	(uint32_t)LCD_D5_GPIO_Port;
-	Lcd.gpios[LCD_D5].pin = 	LCD_D5_Pin;
-	Lcd.gpios[LCD_D6].GPIO = 	(uint32_t)LCD_D6_GPIO_Port;
-	Lcd.gpios[LCD_D6].pin = 	LCD_D6_Pin;
-	Lcd.gpios[LCD_D7].GPIO = 	(uint32_t)LCD_D7_GPIO_Port;
-	Lcd.gpios[LCD_D7].pin = 	LCD_D7_Pin;
+void _lcd1_config(){
+	// Small 16x2 LCD, wired for 4bit communication
+	Lcd[LCD1].columns = 16;
+	Lcd[LCD1].rows = 2;
+	Lcd[LCD1].interface = LCD_INTERFACE_4BIT;
+	Lcd[LCD1].font = LCD_FONT_5X8;
+	// GPIOs of the Display
+	Lcd[LCD1].gpios[LCD_RS].GPIO = 	(uint32_t)LCD1_RS_GPIO_Port;
+	Lcd[LCD1].gpios[LCD_RS].pin = 	LCD1_RS_Pin;
+	Lcd[LCD1].gpios[LCD_E].GPIO = 	(uint32_t)LCD1_E_GPIO_Port;
+	Lcd[LCD1].gpios[LCD_E].pin = 	LCD1_E_Pin;
+	Lcd[LCD1].gpios[LCD_D4].GPIO = 	(uint32_t)LCD1_D4_GPIO_Port;
+	Lcd[LCD1].gpios[LCD_D4].pin = 	LCD1_D4_Pin;
+	Lcd[LCD1].gpios[LCD_D5].GPIO =	(uint32_t)LCD1_D5_GPIO_Port;
+	Lcd[LCD1].gpios[LCD_D5].pin = 	LCD1_D5_Pin;
+	Lcd[LCD1].gpios[LCD_D6].GPIO = 	(uint32_t)LCD1_D6_GPIO_Port;
+	Lcd[LCD1].gpios[LCD_D6].pin = 	LCD1_D6_Pin;
+	Lcd[LCD1].gpios[LCD_D7].GPIO = 	(uint32_t)LCD1_D7_GPIO_Port;
+	Lcd[LCD1].gpios[LCD_D7].pin = 	LCD1_D7_Pin;
 
+	// Gpio for drive the LCD backlight
+	Lcd[LCD1].backlightGpio.GPIO = (uint32_t)LCD1_BL_GPIO_Port;
+	Lcd[LCD1].backlightGpio.pin = LCD1_BL_Pin;
 
-	  //  Lcd.backlightGpio.GPIO = (uint32_t)LCD_BL_CTRL_GPIO_Port;
-	  //  Lcd.backlightGpio.pin = LCD_BL_CTRL_Pin;
-	Lcd.backlightPwm.Channel = TIM_CHANNEL_1;
-	Lcd.backlightPwm.Peripheral = (uint32_t)&htim4;
+	// Initialize the display and turnon the Backlight
+	lcd_init(&Lcd[LCD1]);
+	lcd_backlight_set(&Lcd[LCD1], LCD_BACKLIGHT_ON);
+}
 
-	lcd_backlight_set_bright(&Lcd, 60);
-	lcd_init(&Lcd);
+void _lcd2_config(){
+	// Small 16x2 LCD, wired for 4bit communication
+	Lcd[LCD2].columns = 16;
+	Lcd[LCD2].rows = 2;
+	Lcd[LCD2].interface = LCD_INTERFACE_4BIT;
+	Lcd[LCD2].font = LCD_FONT_5X8;
+	// GPIOs of the Display
+	Lcd[LCD2].gpios[LCD_RS].GPIO = 	(uint32_t)LCD2_RS_GPIO_Port;
+	Lcd[LCD2].gpios[LCD_RS].pin = 	LCD2_RS_Pin;
+	Lcd[LCD2].gpios[LCD_E].GPIO = 	(uint32_t)LCD2_E_GPIO_Port;
+	Lcd[LCD2].gpios[LCD_E].pin = 	LCD2_E_Pin;
+	Lcd[LCD2].gpios[LCD_D4].GPIO = 	(uint32_t)LCD2_D4_GPIO_Port;
+	Lcd[LCD2].gpios[LCD_D4].pin = 	LCD2_D4_Pin;
+	Lcd[LCD2].gpios[LCD_D5].GPIO =	(uint32_t)LCD2_D5_GPIO_Port;
+	Lcd[LCD2].gpios[LCD_D5].pin = 	LCD2_D5_Pin;
+	Lcd[LCD2].gpios[LCD_D6].GPIO = 	(uint32_t)LCD2_D6_GPIO_Port;
+	Lcd[LCD2].gpios[LCD_D6].pin = 	LCD2_D6_Pin;
+	Lcd[LCD2].gpios[LCD_D7].GPIO = 	(uint32_t)LCD2_D7_GPIO_Port;
+	Lcd[LCD2].gpios[LCD_D7].pin = 	LCD2_D7_Pin;
+
+	// Timer handler and channel for PWM operation
+	Lcd[LCD2].backlightPwm.Channel = TIM_CHANNEL_1;
+	Lcd[LCD2].backlightPwm.Peripheral = (uint32_t)&htim4;
+
+	// Initialize display and turnon the Cursor
+	lcd_init(&Lcd[LCD2]);
+	lcd_cursor_on(&Lcd[LCD2]);
+
+	// Turnon Timer 5 to fade-in the LCD
+	HAL_TIM_Base_Start_IT(&htim5);
 }
 
 void _lcd_custom_char(){
 	uint8_t arrow1[8] = { 0x00, 0x04, 0x06, 0x1F, 0x1F, 0x06, 0x04, 0x00 };
 	uint8_t arrow2[8] = { 0x00, 0x04, 0x0C, 0x1F, 0x1F, 0x0C, 0x04, 0x00 };
 
-  lcd_create_custom_char(&Lcd, LCD_CUSTOM_1, arrow1);
-  lcd_create_custom_char(&Lcd, LCD_CUSTOM_2, arrow2);
+	lcd_create_custom_char(&Lcd[LCD1], LCD_CUSTOM_1, arrow1);
+	lcd_create_custom_char(&Lcd[LCD1], LCD_CUSTOM_2, arrow2);
+
+	lcd_create_custom_char(&Lcd[LCD2], LCD_CUSTOM_1, arrow1);
+	lcd_create_custom_char(&Lcd[LCD2], LCD_CUSTOM_2, arrow2);
 }
+
+void _lcd1_lineStart(){
+	lcd_put_pos(&Lcd[LCD1], 0, 0);
+	lcd_send_char(&Lcd[LCD1], LCD_CUSTOM_1);
+	lcd_send_string(&Lcd[LCD1], " This is LCD1 ");
+	lcd_send_char(&Lcd[LCD1], LCD_CUSTOM_2);
+}
+
+void _lcd2_lineStart(){
+	lcd_put_pos(&Lcd[LCD2], 0, 0);
+	lcd_send_char(&Lcd[LCD2], LCD_CUSTOM_1);
+	lcd_send_string(&Lcd[LCD2], " This is LCD2 ");
+	lcd_send_char(&Lcd[LCD2], LCD_CUSTOM_2);
+}
+
+/* Callbacks */
+
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
+	if (htim->Instance == TIM5){
+		if (Lcd2Bright < 100){
+			Lcd2Bright++;
+			lcd_backlight_set_bright(&Lcd[LCD2], Lcd2Bright);
+			if (Lcd2Bright == 100){
+				HAL_TIM_Base_Stop_IT(&htim5);
+			}
+		}
+	}
+}
+
 /* USER CODE END 0 */
 
 /**
@@ -109,8 +170,8 @@ void _lcd_custom_char(){
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-	char texto[21];
-	int Count;
+	char _auxStr[21];
+	int _cnt;
 
   /* USER CODE END 1 */
 
@@ -133,27 +194,37 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_TIM4_Init();
+  MX_TIM5_Init();
   /* USER CODE BEGIN 2 */
   HAL_Delay(150);
 
-  _lcd_config();
+  /* Start and configure the Lcd[LCD1] and Lcd[LCD2] */
+  _lcd1_config();
+  _lcd2_config();
+  /* Configures the custom char on the two Lcds */
   _lcd_custom_char();
 
-
-  lcd_send_char(&Lcd, LCD_CUSTOM_1);
-  lcd_send_string(&Lcd, " Hello World ");
-  lcd_send_char(&Lcd, LCD_CUSTOM_2);
+  /* Start the Text on First line of the LCDs */
+  _lcd1_lineStart();
+  _lcd2_lineStart();
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  Count = 0;
+  _cnt = 0;
   while (1)
   {
-	  sprintf(texto, "Counter: %d", Count);
-	  lcd_send_string_pos(&Lcd, texto, 1, 0);
-	  Count++;
-	  HAL_Delay(1000);
+	  /* Text for LCD1 */
+	  sprintf(_auxStr, "C: 0x%04X", _cnt);
+	  lcd_send_string_pos(&Lcd[LCD1], _auxStr, 1, 0);
+
+	  /* Text for LCD2 */
+	  sprintf(_auxStr, "C: 0x%04X", 0xFFFF-_cnt);
+	  lcd_send_string_pos(&Lcd[LCD2], _auxStr, 1, 0);
+
+	  /* Increase counter and wait for 500ms */
+	  _cnt++;
+	  HAL_Delay(500);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -262,6 +333,51 @@ static void MX_TIM4_Init(void)
 }
 
 /**
+  * @brief TIM5 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM5_Init(void)
+{
+
+  /* USER CODE BEGIN TIM5_Init 0 */
+
+  /* USER CODE END TIM5_Init 0 */
+
+  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+
+  /* USER CODE BEGIN TIM5_Init 1 */
+
+  /* USER CODE END TIM5_Init 1 */
+  htim5.Instance = TIM5;
+  htim5.Init.Prescaler = 15;
+  htim5.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim5.Init.Period = 9999;
+  htim5.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim5.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim5) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim5, &sClockSourceConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim5, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM5_Init 2 */
+
+  /* USER CODE END TIM5_Init 2 */
+
+}
+
+/**
   * @brief GPIO Initialization Function
   * @param None
   * @retval None
@@ -278,22 +394,30 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, LCD_D7_Pin|LCD_D6_Pin|LCD_D5_Pin|LCD_D4_Pin
-                          |LCD_E_Pin|LCD_RS_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, LCD1_D7_Pin|LCD1_D6_Pin|LCD1_D5_Pin|LCD1_D4_Pin
+                          |LCD1_E_Pin|LCD1_RS_Pin|LCD2_RS_Pin|LCD2_E_Pin
+                          |LCD2_D4_Pin|LCD2_D5_Pin|LCD2_D6_Pin|LCD2_D7_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, LCD_D0_Pin|LCD_D1_Pin|LCD_D2_Pin|LCD_D3_Pin, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(LCD1_BL_GPIO_Port, LCD1_BL_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pins : LCD_D7_Pin LCD_D6_Pin LCD_D5_Pin LCD_D4_Pin
-                           LCD_E_Pin LCD_RS_Pin LCD_D0_Pin LCD_D1_Pin
-                           LCD_D2_Pin LCD_D3_Pin */
-  GPIO_InitStruct.Pin = LCD_D7_Pin|LCD_D6_Pin|LCD_D5_Pin|LCD_D4_Pin
-                          |LCD_E_Pin|LCD_RS_Pin|LCD_D0_Pin|LCD_D1_Pin
-                          |LCD_D2_Pin|LCD_D3_Pin;
+  /*Configure GPIO pins : LCD1_D7_Pin LCD1_D6_Pin LCD1_D5_Pin LCD1_D4_Pin
+                           LCD1_E_Pin LCD1_RS_Pin LCD2_RS_Pin LCD2_E_Pin
+                           LCD2_D4_Pin LCD2_D5_Pin LCD2_D6_Pin LCD2_D7_Pin */
+  GPIO_InitStruct.Pin = LCD1_D7_Pin|LCD1_D6_Pin|LCD1_D5_Pin|LCD1_D4_Pin
+                          |LCD1_E_Pin|LCD1_RS_Pin|LCD2_RS_Pin|LCD2_E_Pin
+                          |LCD2_D4_Pin|LCD2_D5_Pin|LCD2_D6_Pin|LCD2_D7_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : LCD1_BL_Pin */
+  GPIO_InitStruct.Pin = LCD1_BL_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+  HAL_GPIO_Init(LCD1_BL_GPIO_Port, &GPIO_InitStruct);
 
 /* USER CODE BEGIN MX_GPIO_Init_2 */
 /* USER CODE END MX_GPIO_Init_2 */
