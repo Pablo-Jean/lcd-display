@@ -9,3 +9,6 @@ Debug/
 *.map
 *.list
 *.su
+*.cyclo
+*.launch
+*.mk
