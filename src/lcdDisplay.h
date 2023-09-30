@@ -129,6 +129,7 @@ typedef struct{
 	 */
 	pwm_t backlightPwm;
 	// !! please, do not customize this values !!
+	// todo: implement this varaibles inside a struct
 	uint8_t _cursor;
 	uint8_t _column;
 	uint8_t _row;
