@@ -11,7 +11,7 @@
 
 #include "platform/platform.h"
 
-#include <stm32f4xx.h>
+#include <stm32f1xx.h>
 
 void _platform_gpio_write(gpio_t Gpio, uint8_t Val){
 	GPIO_TypeDef *gpio = (GPIO_TypeDef*)Gpio.GPIO;
@@ -28,22 +28,7 @@ uint8_t _platform_gpio_read(gpio_t Gpio){
 }
 
 void _platform_pwm_control(pwm_t PwmHandle, uint8_t duty){
-	TIM_HandleTypeDef *htim = (TIM_HandleTypeDef*)PwmHandle.Peripheral;
-	uint32_t channel = PwmHandle.Channel;
-
-	if (duty == 0){
-		HAL_TIM_PWM_Stop(htim, channel);
-	}
-	else if (duty > 100){
-		duty = 100;
-	}
-	if (duty != 0){
-		uint32_t arr = __HAL_TIM_GET_AUTORELOAD(htim);
-		uint32_t cmp = arr*duty/100;
-
-		__HAL_TIM_SET_COMPARE(htim, channel, cmp);
-		HAL_TIM_PWM_Start(htim, channel);
-	}
+	return;
 }
 
 void _platform_delay_ms(uint32_t ms){
@@ -52,7 +37,7 @@ void _platform_delay_ms(uint32_t ms){
 
 void _platform_delay_us(uint32_t us){
 	uint32_t sysclk = HAL_RCC_GetSysClockFreq();
-	uint32_t ticks = ((sysclk)/(2E6))*us;
+	uint32_t ticks = ((sysclk)/(4E6))*us;
 
 	while (ticks > 0){
 		ticks--;

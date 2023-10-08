@@ -12,7 +12,7 @@
 *      Author: Pablo Jean
 */
 
-#include "platform.h"
+#include "platform/platform.h"
 
 
 void _platform_gpio_write(gpio_t Gpio, uint8_t Val){
