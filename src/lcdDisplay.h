@@ -133,6 +133,7 @@ typedef struct{
 	uint8_t _cursor;
 	uint8_t _column;
 	uint8_t _row;
+	uint8_t _initialized;
 	// finished private variables
 }lcd_t;
 
