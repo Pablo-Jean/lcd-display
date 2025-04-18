@@ -30,17 +30,16 @@ void send_to_lcd (lcd_t *lcd, char data, int rs)
 		_dataSend[0] = ((data >> 4) & 0xF);
 		_dataSend[1] = (data & 0xF);
 		for (i=0 ; i<steps ; i++){
-			_platform_delay_us(5);
-			_platform_gpio_write(lcd->gpios[LCD_E], 1);
+			
 			
 			/* write the data to the respective pin */
 			_platform_gpio_write(lcd->gpios[LCD_D7], ((_dataSend[i]>>3)&0x01));
 			_platform_gpio_write(lcd->gpios[LCD_D6], ((_dataSend[i]>>2)&0x01));
+			_platform_gpio_write(lcd->gpios[LCD_E], 1);
 			_platform_gpio_write(lcd->gpios[LCD_D5], ((_dataSend[i]>>1)&0x01));
 			_platform_gpio_write(lcd->gpios[LCD_D4], ((_dataSend[i]>>0)&0x01));
 
 			/* Toggle EN PIN to send the data */
-			_platform_delay_us(10);
 			_platform_gpio_write(lcd->gpios[LCD_E], 0);
 		}
 	}
@@ -167,16 +166,16 @@ void lcd_put_pos(lcd_t *lcd, uint8_t row, uint8_t col)
     switch (row)
     {
         case 0:
-            col |= 0x80;
+            col += 0x80;
             break;
         case 1:
-            col |= 0xC0;
+            col += 0xC0;
             break;
         case 2:
-        	col |= 0x94;
+        	col += 0x94;
         	break;
         case 3:
-        	col |= 0xD4;
+        	col += 0xD4;
         	break;
     }
     lcd_cmd (lcd, (lcd_cmd_e)col);
