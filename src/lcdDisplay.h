@@ -96,9 +96,17 @@ typedef enum{
 	LCD_PIN_QTD
 }lcd_pin_e;
 
+/* Auxiliary Functions */
+
+typedef void (*lcd_gpio_fxn_t)(lcd_pin_e pin, uint8_t state);
+typedef void (*lcd_pwm_fxn_t)(uint8_t value);
+
+/* Do not edit this struct, configure using the lcd_params_t*/
 typedef struct{
-	/* The array containing the GPIO and Pins where the Lcd is connected */
-	gpio_t gpios[LCD_PIN_QTD];
+	/* Function to control the GPIOs of the microcontroller */
+	lcd_gpio_fxn_t GpioFxn;
+	/* Function to set PWM value from 0 to 100 of the display backlight*/
+	lcd_pwm_fxn_t PwmFxn;
 	/* How amount Columns you Lcd have, if you display is a 
 	 * 20x4, so, your columns will be 20
 	 */
@@ -136,6 +144,40 @@ typedef struct{
 	uint8_t _initialized;
 	// finished private variables
 }lcd_t;
+
+typedef struct{
+	/* The array containing the GPIO and Pins where the Lcd is connected */
+	gpio_t gpios[LCD_PIN_QTD];
+	/* How amount Columns you Lcd have, if you display is a 
+	 * 20x4, so, your columns will be 20
+	 */
+	uint32_t columns;
+	/* How amount Rows you Lcd have, if you display is a 
+	 * 20x4, so, your rows will be 4
+	 */
+	uint32_t rows;
+	/* The program must know how you wired the Data pins of your LCD.
+	 * LCD_INTERFACE_4BIT: if you connected D4~D7 pins
+	 * LCD_INTERFACE_8BIT: if you connected D0~D7 pins
+	 */
+	lcd_interface_mode_e interface;
+	/* Tell the font sizing of the display.
+	 * LCD_FONT_5X8: Most common
+	 * LCD_FONT_5X10: A bigger version of the lcd display.
+	 */
+	lcd_font_type_e font;
+	//backlight control, pick one, or no one
+	/* Only Set one of this parameters if you have the backlight control */
+	/* If you controlling a On/Off of the LCD, inform the GPIO and Pin
+	 * For the moment, the HIGH level is to turn on the LCD (NPN Transistor)
+	 */
+	gpio_t backlightGpio;
+	/* Provide the Timer Peripheral Handler and the Channel of
+	 * the PWM channel to set the Lcd brightness level over the lib.
+	 * 100% indicates full brightness, and 0% will turnoff.
+	 */
+	pwm_t backlightPwm;
+}lcd_params_t;
 
 /*
  * Function Prototypes

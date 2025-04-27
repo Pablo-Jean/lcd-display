@@ -1,5 +1,7 @@
 Debug/
 .settings/
+.vscode/
+build/
 
 *.bin
 *.hex
