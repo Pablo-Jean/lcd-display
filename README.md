@@ -95,7 +95,6 @@ void GpioFxn(lcd_pin_e pin, uint8_t state){
 		break;
 	case LCD_RW:
 		// change the RW Pin output with 'state' value
-		// not used in most cases, the library doesn't support reading data from display
 		break;
 	case LCD_E:
 		// change the E Pin output with 'state' value
@@ -125,11 +124,15 @@ void GpioFxn(lcd_pin_e pin, uint8_t state){
 		// change the D7 Pin output with 'state' value
 		break;
 	default:
-
+		// just to prevent warnings from compiler.
 		break;
 	}
 }
 ```
+
+Note 1: `case LCD_RW` can be omitted, library doesn't support (yet) the reading data from Display.
+Note 2: If you're using only the 4BIT interface, you can remove from `case LCD_D0` to `case LCD_D3`, these pins are not used in this cases.
+Note 3: Keep the `default` statement, to prevent warnings from compiler. 
 
 ####  lcd_delay_us_fxn_t DelayUsFxn
 
