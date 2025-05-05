@@ -181,7 +181,7 @@ typedef struct{
  * @brief Initialize the display.
  * 
  * @param lcd : pointer to the Lcd Handler
- * @param params: pointer to the Lcd Initialization paramters
+ * @param params: pointer to the Lcd Initialization parameters
  */
 void lcd_init (lcd_t *lcd, lcd_params_t *params);  
 

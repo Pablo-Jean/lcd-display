@@ -1,7 +1,7 @@
 <center>
 <img src="imgs/logo-education.png"  width="300">
 
-Created for Ouroboros Embedded Education.
+Created by Ouroboros Embedded Education.
 </center>
 
 ## Versions Changelog
@@ -31,76 +31,171 @@ This lib aiming to provide this advantages:
 
 Contains the Lcd logic functions and the Lcd Handler.
 
-### Platform Folder
-
-In this folder we have the `platform.h` file with contains the chipset functions must be implemented by the user.
-
-The `platform_blank.c` contains only the template to start the writing. I recommend you to copy this file and paste on your application folder. Please, do not forget to remove this file from your build configuration.
-
 ## Structure
 
-The `lcd_t` handler will be explained below:
+The `lcd_t` handler contains all configurations and variables for Display Working. From version **v2.0.0**, the `lcd_t` instance must not be changed by the developer.
+
+All initialization was made by the `lcd_params_t` struct, described below:
 
 ```C
 typedef struct{
-	/* The array containing the GPIO and Pins where the Lcd is connected */
-	gpio_t gpios[LCD_PIN_QTD];
-	/* How amount Columns you Lcd have, if you display is a 
+	/* (Mandatory) Function to control the GPIOs of the microcontroller. */
+	lcd_gpio_fxn_t GpioFxn;
+
+	/* (Optional) Function to set the backlight, from 0 to 100, you can use a simple gpio turn on/off
+	 * or use a PWM to set a Brightness level
+	 */
+	lcd_backlight_fxn_t BacklightFxn;
+
+	/* (Mandatory) Delay us wrapper function, must be implemented for correctly timing on startup 
+	 * the request delay can reach 10ms, your function must support this timing.
+	 */
+	lcd_delay_us_fxn_t DelayUsFxn;
+
+	/* (Mandatory) How amount Columns you Lcd have, if you display is a 
 	 * 20x4, so, your columns will be 20
 	 */
 	uint32_t columns;
-	/* How amount Rows you Lcd have, if you display is a 
+
+	/* (Mandatory) How amount Rows you Lcd have, if you display is a 
 	 * 20x4, so, your rows will be 4
 	 */
 	uint32_t rows;
-	/* The program must know how you wired the Data pins of your LCD.
+
+	/* (Mandatory) The program must know how you wired the Data pins of your LCD.
 	 * LCD_INTERFACE_4BIT: if you connected D4~D7 pins
 	 * LCD_INTERFACE_8BIT: if you connected D0~D7 pins
 	 */
 	lcd_interface_mode_e interface;
-	/* Tell the font sizing of the display.
+
+	/* (Mandatory) Tell the font sizing of the display.
 	 * LCD_FONT_5X8: Most common
 	 * LCD_FONT_5X10: A bigger version of the lcd display.
 	 */
 	lcd_font_type_e font;
-	//backlight control, pick one, or no one
-	/* Only Set one of this parameters if you have the backlight control */
-	/* If you controlling a On/Off of the LCD, inform the GPIO and Pin
-	 * For the moment, the HIGH level is to turn on the LCD (NPN Transistor)
-	 */
-	gpio_t backlightGpio;
-	/* Provide the Timer Peripheral Handler and the Channel of
-	 * the PWM channel to set the Lcd brightness level over the lib.
-	 * 100% indicates full brightness, and 0% will turnoff.
-	 */
-	pwm_t backlightPwm;
-	// !! please, do not customize this values !!
-	uint8_t _cursor;
-	uint8_t _column;
-	uint8_t _row;
-}lcd_t;
+}lcd_params_t;
 ```
 
-And, to the handler knows what GPIOs to drive, the  `gpio_t` is the type of the `gpios` parameter on the `lcd_t` handler. So, the developer must inform all connected GPIOs.
+Note that some functions are optional, other are mandatory, if any as an invalid value, the program will be asserted.
+
+
+### Functions Prototypes
+
+We have three functions prototypes to provide on the `lcd_params_t` function, let's see your parameters and how they work.
+
+#### lcd_gpio_fxn_t GpioFxn 
+
+This functions is used to control the LCD GPIOS. The function provide the pin to control and the signal, as described in the example below:
 
 ```C
-typedef struct{
-	/* The GPIO handler of your MCU, some uc do not have
-	 * the GPIO handler, only the Pin (nRF52810, CC26x2R1, for example)
-	 */
-	uint32_t GPIO;
-	/* The Pin number parameter. Some MCUs has only this parameters
-	 * to identify your GPIOs*/
-	uint32_t pin;
-	/* Example of providing this parameters:
-	 * ::for STM32::
-	 * gpios.GPIO = (uint32_t)GPIOA
-	 * gpios.pin = GPIO_PIN3
-	 */
-}gpio_t;
+void GpioFxn(lcd_pin_e pin, uint8_t state){
+	switch (pin){
+	case LCD_RS:
+		// change the RS Pin output with 'state' value
+		break;
+	case LCD_RW:
+		// change the RW Pin output with 'state' value
+		// not used in most cases, the library doesn't support reading data from display
+		break;
+	case LCD_E:
+		// change the E Pin output with 'state' value
+		break;
+	case LCD_D0:
+		// change the D0 Pin output with 'state' value
+		break;
+	case LCD_D1:
+		// change the D1 Pin output with 'state' value
+		break;
+	case LCD_D2:
+		// change the D2 Pin output with 'state' value
+		break;
+	case LCD_D3:
+		// change the D3 Pin output with 'state' value
+		break;
+	case LCD_D4:
+		// change the D4 Pin output with 'state' value
+		break;
+	case LCD_D5:
+		// change the D5 Pin output with 'state' value
+		break;
+	case LCD_D6:
+		// change the D6 Pin output with 'state' value
+		break;
+	case LCD_D7:
+		// change the D7 Pin output with 'state' value
+		break;
+	default:
+
+		break;
+	}
+}
 ```
 
-Note: I will talk about PWM later.
+####  lcd_delay_us_fxn_t DelayUsFxn
+
+Routine used to generate Microseconds delays, because the LCD Driver requires some delays between some commands.
+
+```C
+void DelayUs(uint32_t us){
+	// call the delay functions from your MCU
+	driver_delay_us(us);
+}
+```
+
+In the STM32, we do not have a built-in delay microseconds, we can use a timer, following the example below, using the TIM1 with 1MHz frequency.
+
+```C
+void DelayUs(uint32_t us){
+	uint32_t a;
+
+	// Reset Timer counter to 0
+	__HAL_TIM_SET_COUNTER(&htim1, 0);
+	// Start the timer counter
+	HAL_TIM_Base_Start(&htim1);
+
+	do{
+		// check if value of us is grater than timer counter limit
+		if (us > 65534){
+			a = 65534;
+		}
+		else{
+			a = us;
+		}
+		// wait until timer reaches the 'a' value
+		while (__HAL_TIM_GET_COUNTER(htim1) < a);
+		// Reset Timer counter to 0
+		__HAL_TIM_SET_COUNTER(&htim1, 0);
+	}while (us > 0);
+
+	// stop the timer
+	HAL_TIM_Base_Stop(&htim1);
+}
+```
+
+#### lcd_backlight_fxn_t BacklightFxn
+
+This optional routine, is used to control the backlight of the LCD. This routine, to properly work, must have a hardware LED control, that can be done by using transistor or mosfets.
+
+The routine will return 0 or 100 if use `lcd_backlight_set` to turn on or off the LCD or the value set on `lcd_backlight_set_bright` level parameter.
+
+The routine can be implemented has showed below:
+
+```C
+void LcdBacklight(uint8_t value){
+	// If using a GPIO as a digital Output
+	if (value == 0){
+		// Turn off the GPIO
+		Gpio_SetOff();
+	}
+	else{
+		// Turn on the GPIO
+		Gpio_SetOn();
+	}
+	// If using a GPIO as a PWM output
+	// Set PWM value
+	PWM_SetValue(value);
+}
+```
 
 ## Functions
 
@@ -109,8 +204,9 @@ Note: I will talk about PWM later.
  * @brief Initialize the display.
  * 
  * @param lcd : pointer to the Lcd Handler
+ * @param params: pointer to the Lcd Initialization parameters
  */
-void lcd_init (lcd_t *lcd);  
+void lcd_init (lcd_t *lcd, lcd_params_t *params);  
 
 /**
  * @brief Disables the cursor blink.
@@ -262,8 +358,4 @@ void lcd_backlight_set_bright (lcd_t *lcd, uint8_t level);
 
 ## Quick Start Steps
 
-See the example.
-
-## Examples
-
-We have one provided for the moment.
+See the `examples` folder to see how we can implement.
