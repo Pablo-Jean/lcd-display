@@ -42,33 +42,36 @@ static void _send_to_lcd (lcd_t *lcd, char data, int rs)
 		_dataSend[0] = ((data >> 4) & 0xF);
 		_dataSend[1] = (data & 0xF);
 		for (i=0 ; i<steps ; i++){
+			_delay_us(lcd, 10);
+			_send_bit_to_pin(lcd, LCD_E, 1);
 			/* write the data to the respective pin */
 			_send_bit_to_pin(lcd, LCD_D7, ((_dataSend[i]>>3)&0x01));
 			_send_bit_to_pin(lcd, LCD_D6, ((_dataSend[i]>>2)&0x01));
-			_send_bit_to_pin(lcd, LCD_E, 1);
 			_send_bit_to_pin(lcd, LCD_D5, ((_dataSend[i]>>1)&0x01));
 			_send_bit_to_pin(lcd, LCD_D4, ((_dataSend[i]>>0)&0x01));
-
+			
 			/* Toggle EN PIN to send the data */
+			_delay_us(lcd, 10);
 			_send_bit_to_pin(lcd, LCD_E, 0);
 		}
 	}
 	else{
 		_dataSend[0] = data;
+		_delay_us(lcd, 10);
+		_send_bit_to_pin(lcd, LCD_E, 1);
 
 		/* write the data to the respective pin */
 		_send_bit_to_pin(lcd, LCD_D7, ((_dataSend[0]>>7)&0x01));
 		_send_bit_to_pin(lcd, LCD_D6, ((_dataSend[0]>>6)&0x01));
 		_send_bit_to_pin(lcd, LCD_D5, ((_dataSend[0]>>5)&0x01));
 		_send_bit_to_pin(lcd, LCD_D4, ((_dataSend[0]>>4)&0x01));
-		_send_bit_to_pin(lcd, LCD_E, 1);
 		_send_bit_to_pin(lcd, LCD_D3, ((_dataSend[0]>>3)&0x01));
 		_send_bit_to_pin(lcd, LCD_D2, ((_dataSend[0]>>2)&0x01));
 		_send_bit_to_pin(lcd, LCD_D1, ((_dataSend[0]>>1)&0x01));
 		_send_bit_to_pin(lcd, LCD_D0, ((_dataSend[0]>>0)&0x01));
 
-		/* Toggle EN PIN to send the data
-		 */
+		/* Toggle EN PIN to send the data */
+		_delay_us(lcd, 10);
 		_send_bit_to_pin(lcd, LCD_E, 0);
 	}
 }
@@ -98,10 +101,11 @@ void lcd_init (lcd_t *lcd, lcd_params_t *params)
 	assert(params->font <= LCD_FONT_5X10);
 
 	lcd->BacklightFxn = params->BacklightFxn;
+	lcd->DelayUsFxn = params->DelayUsFxn;
 	lcd->GpioFxn = params->GpioFxn;
 	lcd->columns = params->columns;
 	lcd->rows = params->rows;
-	lcd->interface = params->BacklightFxn;
+	lcd->interface = params->interface;
 	lcd->font = params->font;
 	lcd->_initialized = 0;
 
@@ -242,7 +246,7 @@ void lcd_send_char (lcd_t *lcd, char data){
 void lcd_send_string (lcd_t *lcd, char *str)
 {
 	assert(lcd != NULL && lcd->_initialized == 1);
-	assert(str =! NULL);
+	assert(str != NULL);
 
 	while (*str)lcd_send_char (lcd, (*str++));
 }
