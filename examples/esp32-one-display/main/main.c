@@ -100,7 +100,8 @@ void app_lcd_gpio(lcd_pin_e pin, uint8_t state){
 
 void app_lcd_delay(uint32_t us){
     if (us < 1000){
-        vTaskDelay(pdMS_TO_TICKS(1));
+        //vTaskDelay(pdMS_TO_TICKS(2));
+        ets_delay_us(us);
     }
     else{
         vTaskDelay(pdMS_TO_TICKS(us/1000));
@@ -124,15 +125,24 @@ void app_init_lcd(){
 
 void app_main(void)
 {
+    char Text[32];
+    int i = 0;
+
+    vTaskDelay(pdMS_TO_TICKS(1000));
+    // Initialize the GPIOs
     app_init_gpio();
+    // Initialize the LCD
     app_init_lcd();
 
-    lcd_send_string_pos(&Lcd, ">> Hello World", 0, 0);
-    lcd_send_string_pos(&Lcd, "From ESP32-C3", 1, 0);
-    lcd_send_string_pos(&Lcd, "Ouroboros", 2, 0);
-    lcd_send_string_pos(&Lcd, "Embedded", 3, 0);
+    // Send a string to the LCD
+    lcd_send_string_pos(&Lcd, "> Hello World from", 0, 0);
+    lcd_send_string_pos(&Lcd, "> ESP32-C3", 1, 0);
+    lcd_send_string_pos(&Lcd, "> Ouroboros Embedded", 2, 0);
     while (1) {
-        
+        // Generate a string with the counter value
+        sprintf(Text, "> Counter: %d", i++);
+        // Send the string to the LCD
+        lcd_send_string_pos(&Lcd, Text, 3, 0);
 
         vTaskDelay(pdMS_TO_TICKS(1000));
     }

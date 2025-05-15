@@ -25,11 +25,13 @@ static void _send_to_lcd (lcd_t *lcd, char data, int rs)
 {
 	uint8_t _dataSend[2], steps, i;
 
-	_send_bit_to_pin(lcd, LCD_RS, rs);  // rs = 1 for data, rs=0 for command
+	_delay_us(lcd, 500);
 
-	_delay_us(lcd, 5);
+	_send_bit_to_pin(lcd, LCD_RS, rs);  // rs = 1 for data, rs=0 for command
+	_delay_us(lcd, 50);
+
 	if (lcd->interface == LCD_INTERFACE_4BIT){
-		// will send the dara byte in two steps
+		// will send the data byte in two steps
 		// first is sent the Upper 4 bits (higher nibble) over the interface
 		// in the second step, is sent the lower nibble
 		// if is the first 3 steps, ignore lower nibles
@@ -42,8 +44,6 @@ static void _send_to_lcd (lcd_t *lcd, char data, int rs)
 		_dataSend[0] = ((data >> 4) & 0xF);
 		_dataSend[1] = (data & 0xF);
 		for (i=0 ; i<steps ; i++){
-			_delay_us(lcd, 10);
-			_send_bit_to_pin(lcd, LCD_E, 1);
 			/* write the data to the respective pin */
 			_send_bit_to_pin(lcd, LCD_D7, ((_dataSend[i]>>3)&0x01));
 			_send_bit_to_pin(lcd, LCD_D6, ((_dataSend[i]>>2)&0x01));
@@ -51,15 +51,15 @@ static void _send_to_lcd (lcd_t *lcd, char data, int rs)
 			_send_bit_to_pin(lcd, LCD_D4, ((_dataSend[i]>>0)&0x01));
 			
 			/* Toggle EN PIN to send the data */
-			_delay_us(lcd, 10);
+			_delay_us(lcd, 50);
+			_send_bit_to_pin(lcd, LCD_E, 1);
+			_delay_us(lcd, 50);
 			_send_bit_to_pin(lcd, LCD_E, 0);
 		}
 	}
 	else{
 		_dataSend[0] = data;
-		_delay_us(lcd, 10);
-		_send_bit_to_pin(lcd, LCD_E, 1);
-
+		
 		/* write the data to the respective pin */
 		_send_bit_to_pin(lcd, LCD_D7, ((_dataSend[0]>>7)&0x01));
 		_send_bit_to_pin(lcd, LCD_D6, ((_dataSend[0]>>6)&0x01));
@@ -69,9 +69,11 @@ static void _send_to_lcd (lcd_t *lcd, char data, int rs)
 		_send_bit_to_pin(lcd, LCD_D2, ((_dataSend[0]>>2)&0x01));
 		_send_bit_to_pin(lcd, LCD_D1, ((_dataSend[0]>>1)&0x01));
 		_send_bit_to_pin(lcd, LCD_D0, ((_dataSend[0]>>0)&0x01));
-
+		
 		/* Toggle EN PIN to send the data */
-		_delay_us(lcd, 10);
+		_delay_us(lcd, 50);
+		_send_bit_to_pin(lcd, LCD_E, 1);
+		_delay_us(lcd, 50);
 		_send_bit_to_pin(lcd, LCD_E, 0);
 	}
 }
@@ -117,7 +119,7 @@ void lcd_init (lcd_t *lcd, lcd_params_t *params)
 	}
 	_delay_ms(lcd, 40);  	// wait for >40ms
 	_lcd_cmd (lcd, (lcd_cmd_e)(LCD_CMD_FUNCTION_SET | DISPLAY_DL_8BIT));
-	_delay_ms(lcd, 10);  	// wait for >4.1ms
+	_delay_ms(lcd, 5);  	// wait for >4.1ms
 	_lcd_cmd (lcd, (lcd_cmd_e)(LCD_CMD_FUNCTION_SET | DISPLAY_DL_8BIT));
 	_delay_us(lcd, 100);  	// wait for >100us
 	_lcd_cmd (lcd, (lcd_cmd_e)(LCD_CMD_FUNCTION_SET | DISPLAY_DL_8BIT));
@@ -131,7 +133,7 @@ void lcd_init (lcd_t *lcd, lcd_params_t *params)
 		_lcd_cmd (lcd, (lcd_cmd_e)(LCD_CMD_FUNCTION_SET | DISPLAY_DL_8BIT));
 		dispDl = DISPLAY_DL_8BIT;
 	}
-	_delay_ms(lcd, 10);
+	_delay_ms(lcd, 10);		// wait for >10ms
 	lcd->_initialized = 1;
 
   // dislay initialisation
@@ -145,8 +147,10 @@ void lcd_init (lcd_t *lcd, lcd_params_t *params)
 	_lcd_cmd (lcd, LCD_CMD_INC_CURSOR); //Entry mode set --> I/D = 1 (increment cursor) & S = 0 (no shift)
 	_delay_ms(lcd, 5);
 	_lcd_cmd (lcd, (lcd_cmd_e)(LCD_CMD_DISP_CONTROL | lcd->_cursor)); //Display on/off control --> D = 1, C and B = 0. (Cursor and blink, last two bits)
-
+	
 	_lcd_cmd(lcd, LCD_CMD_RETURN_HOME);
+	_delay_ms(lcd, 5);
+
 	lcd->_column = 0;
 	lcd->_row = 0;
 }
