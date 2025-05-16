@@ -6,9 +6,21 @@ Created by Ouroboros Embedded Education.
 
 ## Versions Changelog
 
-V1.0.0
+#### V1.0.0
 
 - Initial Release
+
+#### V1.0.1
+
+- Fixed position calculation.
+- Fixed initialization on 4 bit mode.
+- Added typecast to prevent warning messages.
+
+#### V2.0.0
+
+- BREAKING CHANGE.
+- Changed LCD initialization with `lcd_params_t` struct.
+- Added ESP32-C3 code example.
 
 ## Introduction
 
